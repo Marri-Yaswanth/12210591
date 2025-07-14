@@ -14,7 +14,12 @@ export async function createShortURL(
     const code = customCode || nanoid(6)
 
     if(urlStore[code]){
-        await log('backend' , 'error' , 'handler' , `Shortcode collision: ${code}`)
+        await log({
+            stack: 'backend',
+            level: 'error',
+            package: 'handler',
+            message: `ShortCode already exists: ${code}`
+        })
         throw new Error('ShortCode already exists. Please choose another one.')
     }
     
@@ -28,7 +33,12 @@ export async function createShortURL(
         clicks: []
     }
 
-    await log('backend' , 'info' , 'handler' , `Short URL created: ${code}`)
+    await log({
+        stack: 'backend',
+        level: 'info',
+        package: 'repository',
+        message: `ShortURL created with code: ${code}`
+    })
 
     return{
         shortLink: `${Host}/${code}`,
@@ -39,7 +49,12 @@ export async function createShortURL(
 export async function getAnalytics(code: string){
     const data = urlStore[code]
     if(!data){
-        await log('backend' , 'warn' , 'repository' , `Analytics fetch failed for ${code}`)
+        await log({
+            stack: 'backend',
+            level: 'error',
+            package: 'repository',
+            message: `Analytics request failed for shortcode: ${code}`
+        })
         throw new Error('Shortcode not found')
     }
 
@@ -55,12 +70,22 @@ export async function getAnalytics(code: string){
 export async function handleRedirect(code: string, req: any){
     const data = urlStore[code]
     if(!data){
-        await log('backend' , 'warn' , 'repository' , `Redirect failed for ${code}`)
-        throuw new Error('Shortcode not found')
+        await log({
+            stack: 'backend',
+            level: 'error',
+            package: 'handler',
+            message: `Redirect failed for shortcode: ${code}`
+        })
+        throw new Error('Shortcode not found')
     }
 
     if(new Date() > data.expiresAt){
-        await log('backend' , 'error' , 'handler' , `Shortcode expired: ${code}`)
+        await log({
+            stack: 'backend',
+            level: 'error',
+            package: 'handler',
+            message: `Link expired for shortcode: ${code}`
+        })
         throw new Error('Link has expired')
     }
 
@@ -74,6 +99,11 @@ export async function handleRedirect(code: string, req: any){
         location: location,
     })
 
-    await log('backend' , 'info' , 'handler' , 'Redirecting to long URL: ' + data.longURL)
+    await log({
+        stack: 'backend',
+        level: 'info',
+        package: 'handler',
+        message: `Redirecting for shortcode: ${code} from ${location}`
+    })
     return data.longURL
 }
