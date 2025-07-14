@@ -55,6 +55,8 @@ Promise<void>{
             }
         )
     }catch(err){
-        console.log('Logging failed: ' + err.message)
+        const error = err as Error
+        console.log('Logging failed: ' + error.message)
     }
 }
+
